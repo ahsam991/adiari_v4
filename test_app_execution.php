@@ -16,7 +16,10 @@ $_SERVER['SERVER_NAME'] = 'localhost';
 $_SERVER['SERVER_PORT'] = '80';
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
-// Mock session for testing
+// Initialize session properly for testing
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
 $_SESSION = [];
 
 // Change to public directory context

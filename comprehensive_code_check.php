@@ -51,12 +51,27 @@ echo "\n=== COMPREHENSIVE CODE EXECUTION CHECK ===\n\n";
 echo "1. PHP SYNTAX CHECK\n";
 echo "-------------------\n";
 
+// Use PHP native functions for cross-platform compatibility
 $php_files = [];
-exec("find " . escapeshellarg(ROOT_PATH . '/app') . " -name '*.php' -type f", $php_files);
-exec("find " . escapeshellarg(ROOT_PATH . '/config') . " -name '*.php' -type f", $config_files);
-exec("find " . escapeshellarg(ROOT_PATH . '/routes') . " -name '*.php' -type f", $route_files);
 
-$php_files = array_merge($php_files, $config_files, $route_files);
+// Recursively find all PHP files in app directory
+$iterator = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator(ROOT_PATH . '/app', RecursiveDirectoryIterator::SKIP_DOTS),
+    RecursiveIteratorIterator::SELF_FIRST
+);
+foreach ($iterator as $file) {
+    if ($file->isFile() && $file->getExtension() === 'php') {
+        $php_files[] = $file->getPathname();
+    }
+}
+
+// Add config files
+$config_files = glob(ROOT_PATH . '/config/*.php') ?: [];
+$php_files = array_merge($php_files, $config_files);
+
+// Add route files
+$route_files = glob(ROOT_PATH . '/routes/*.php') ?: [];
+$php_files = array_merge($php_files, $route_files);
 
 $syntax_errors = 0;
 $syntax_checked = 0;
