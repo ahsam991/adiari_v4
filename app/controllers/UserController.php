@@ -88,7 +88,7 @@ class UserController extends Controller {
         }
 
         // Validate CSRF token
-        if (!$this->validateCSRF()) {
+        if (!$this->validateCsrf()) {
             Session::setFlash('error', 'Invalid request. Please try again.');
             $this->redirect('/account/profile');
         }
@@ -159,7 +159,7 @@ class UserController extends Controller {
         }
 
         // Validate CSRF token
-        if (!$this->validateCSRF()) {
+        if (!$this->validateCsrf()) {
             Session::setFlash('error', 'Invalid request. Please try again.');
             $this->redirect('/account/change-password');
         }
