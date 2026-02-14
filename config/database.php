@@ -9,7 +9,6 @@ return [
     'grocery' => [
         'host' => 'localhost',
         'port' => 3306,
-        'unix_socket' => '/Applications/XAMPP/xamppfiles/var/mysql/mysql.sock',
         'database' => 'adiari_grocery',
         'username' => 'root',
         'password' => '',
@@ -22,7 +21,6 @@ return [
     'inventory' => [
         'host' => 'localhost',
         'port' => 3306,
-        'unix_socket' => '/Applications/XAMPP/xamppfiles/var/mysql/mysql.sock',
         'database' => 'adiari_inventory',
         'username' => 'root',
         'password' => '',
@@ -35,7 +33,6 @@ return [
     'analytics' => [
         'host' => 'localhost',
         'port' => 3306,
-        'unix_socket' => '/Applications/XAMPP/xamppfiles/var/mysql/mysql.sock',
         'database' => 'adiari_analytics',
         'username' => 'root',
         'password' => '',

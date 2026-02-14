@@ -642,7 +642,7 @@ $taxIncluded = isset($taxSettings['tax_included_in_price']) ? $taxSettings['tax_
                                         </td>
                                         <td class="px-5 py-3 font-medium">¥<?= number_format($ap['price'], 2) ?></td>
                                         <td class="px-5 py-3">
-                                            <?php if ($ap['tax_rate'] !== null && $ap['tax_rate'] !== ''): ?>
+                                            <?php if (isset($ap['tax_rate']) && $ap['tax_rate'] !== null && $ap['tax_rate'] !== ''): ?>
                                                 <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full"><?= $ap['tax_rate'] ?>% (custom)</span>
                                             <?php else: ?>
                                                 <span class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-0.5 rounded-full"><?= $globalTaxRate ?>% (global)</span>
@@ -652,7 +652,7 @@ $taxIncluded = isset($taxSettings['tax_included_in_price']) ? $taxSettings['tax_
                                             <form method="post" action="/admin/tax/product/<?= $ap['id'] ?>" class="flex items-center gap-2">
                                                 <?= Security::getCsrfField() ?>
                                                 <input type="number" name="tax_rate" step="0.01" min="0" max="100" 
-                                                    value="<?= $ap['tax_rate'] !== null ? htmlspecialchars($ap['tax_rate']) : '' ?>" 
+                                                    value="<?= isset($ap['tax_rate']) && $ap['tax_rate'] !== null ? htmlspecialchars($ap['tax_rate']) : '' ?>" 
                                                     placeholder="<?= $globalTaxRate ?>"
                                                     class="w-24 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                                 <button type="submit" class="p-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition opacity-0 group-hover:opacity-100"
