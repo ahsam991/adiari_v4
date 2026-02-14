@@ -76,6 +76,7 @@ $router->post('/manager/product/create', 'ManagerController@storeProduct');
 $router->get('/manager/product/{id}/edit', 'ManagerController@editProduct');
 $router->post('/manager/product/{id}/update', 'ManagerController@updateProduct');
 $router->post('/manager/product/{id}/delete', 'ManagerController@deleteProduct');
+$router->post('/manager/products/import', 'ManagerController@importProducts');
 
 // Category management
 $router->get('/manager/categories', 'ManagerController@categories');
@@ -126,6 +127,13 @@ $router->post('/admin/offer/{id}/delete', 'AdminController@deleteOffer');
 
 // Activity logs
 $router->get('/admin/logs', 'AdminController@logs');
+
+// Tax management
+$router->post('/admin/tax/update', 'AdminController@updateTax');
+$router->post('/admin/tax/product/{id}', 'AdminController@updateProductTax');
+
+// Changelog
+$router->post('/admin/changelog/add', 'AdminController@addChangelog');
 
 // Weekly Deals page for customers
 $router->get('/deals', 'HomeController@deals');

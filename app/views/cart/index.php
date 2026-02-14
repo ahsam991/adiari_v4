@@ -161,8 +161,16 @@ $remaining = max(0, $freeShippingThreshold - $subtotal);
                                 <?php endif; ?>
                             </div>
                             <div class="flex justify-between text-gray-600 dark:text-gray-400">
-                                <span>Tax</span>
-                                <span class="font-medium text-[#111712] dark:text-white">Included</span>
+                                <span><?= htmlspecialchars($taxLabel ?? 'Tax') ?> (<?= $taxRate ?? 10 ?>%)</span>
+                                <?php if ($taxEnabled ?? true): ?>
+                                    <?php if ($taxIncluded ?? true): ?>
+                                        <span class="font-medium text-[#111712] dark:text-white">¥<?= number_format($taxAmount ?? 0) ?> <span class="text-xs text-gray-400">(incl.)</span></span>
+                                    <?php else: ?>
+                                        <span class="font-medium text-[#111712] dark:text-white">+ ¥<?= number_format($taxAmount ?? 0) ?></span>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <span class="font-medium text-green-600">No Tax</span>
+                                <?php endif; ?>
                             </div>
                         </div>
 
@@ -178,9 +186,11 @@ $remaining = max(0, $freeShippingThreshold - $subtotal);
                         <div class="border-t border-gray-100 dark:border-gray-800 pt-4 mb-6">
                             <div class="flex justify-between items-end">
                                 <span class="font-bold text-lg text-[#111712] dark:text-white">Total</span>
-                                <span class="font-bold text-2xl text-[#111712] dark:text-white">¥<?= number_format($totals['subtotal']) ?></span>
+                                <span class="font-bold text-2xl text-[#111712] dark:text-white">¥<?= number_format($totalWithTax ?? $totals['subtotal']) ?></span>
                             </div>
-                            <p class="text-xs text-gray-400 mt-1">Including VAT</p>
+                            <?php if ($taxEnabled ?? true): ?>
+                                <p class="text-xs text-gray-400 mt-1"><?= ($taxIncluded ?? true) ? 'Tax included in price' : 'Tax added to subtotal' ?> (<?= htmlspecialchars($taxLabel ?? 'Tax') ?> <?= $taxRate ?? 10 ?>%)</p>
+                            <?php endif; ?>
                         </div>
 
                         <a href="<?= $this->url('/checkout') ?>" class="w-full flex items-center justify-center gap-2 py-4 bg-primary hover:bg-primary/90 text-[#111712] font-bold rounded-xl transition-all shadow-lg shadow-primary/20 hover:shadow-primary/30 <?= !$validation['valid'] ? 'opacity-50 pointer-events-none' : '' ?>">

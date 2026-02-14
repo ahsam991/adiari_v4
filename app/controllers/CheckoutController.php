@@ -133,9 +133,28 @@ class CheckoutController extends Controller {
 
         $subtotal = $totals['subtotal'];
         $discountAmount = 0;
-        $taxAmount = 0;
         $shippingCost = 0;
-        $totalAmount = $subtotal + $taxAmount + $shippingCost - $discountAmount;
+
+        // Calculate tax dynamically from settings
+        require_once __DIR__ . '/../models/Setting.php';
+        $taxEnabled = Setting::get('tax_enabled', true);
+        $taxIncluded = Setting::get('tax_included_in_price', true);
+        $globalTaxRate = Setting::get('global_tax_rate', 10);
+        $taxAmount = 0;
+
+        if ($taxEnabled) {
+            // Calculate tax per item (supports per-product tax rates)
+            foreach ($items as $item) {
+                $product = $this->productModel->find($item['product_id']);
+                $itemRate = ($product && $product['tax_rate'] !== null) ? (float)$product['tax_rate'] : $globalTaxRate;
+                $itemTotal = (float)$item['price'] * (int)$item['quantity'];
+                $taxAmount += Setting::calculateTax($itemTotal, $itemRate, $taxIncluded);
+            }
+        }
+
+        $totalAmount = $taxIncluded
+            ? $subtotal + $shippingCost - $discountAmount   // Tax already in price
+            : $subtotal + $taxAmount + $shippingCost - $discountAmount;  // Tax added on top
 
         $orderData = [
             'user_id' => $userId,

@@ -11,7 +11,7 @@ class Product extends Model {
     protected $db = 'grocery';
     protected $fillable = [
         'name', 'slug', 'sku', 'description', 'short_description',
-        'category_id', 'price', 'sale_price', 'cost_price',
+        'category_id', 'price', 'sale_price', 'cost_price', 'tax_rate',
         'stock_quantity', 'min_stock_level', 'unit', 'weight',
         'is_halal', 'halal_cert_number', 'is_organic', 'is_featured',
         'is_new', 'is_on_sale', 'status', 'primary_image',

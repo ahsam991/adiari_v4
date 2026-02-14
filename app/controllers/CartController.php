@@ -7,6 +7,7 @@
 require_once __DIR__ . '/../core/Controller.php';
 require_once __DIR__ . '/../models/Cart.php';
 require_once __DIR__ . '/../models/Product.php';
+require_once __DIR__ . '/../models/Setting.php';
 require_once __DIR__ . '/../helpers/Session.php';
 require_once __DIR__ . '/../helpers/Security.php';
 require_once __DIR__ . '/../helpers/Logger.php';
@@ -21,12 +22,9 @@ class CartController extends Controller {
         $this->productModel = new Product();
     }
 
-    /**
-     * Require login and return user ID
-     */
     private function requireUser() {
         if (!Session::isLoggedIn()) {
-            Session::setFlash('error', 'Please login to add items to your cart.');
+            Session::setFlash('error', 'Please login to manage your cart.');
             $this->redirect('/login');
         }
         return (int) Session::get('user_id');
@@ -41,11 +39,37 @@ class CartController extends Controller {
         $totals = $this->cartModel->getCartTotals($userId);
         $validation = $this->cartModel->validateCart($userId);
 
+        // Calculate tax dynamically
+        $taxEnabled = Setting::get('tax_enabled', true);
+        $taxIncluded = Setting::get('tax_included_in_price', true);
+        $globalTaxRate = Setting::get('global_tax_rate', 10);
+        $taxLabel = Setting::get('tax_label', 'Consumption Tax');
+        $taxAmount = 0;
+
+        if ($taxEnabled && !empty($items)) {
+            foreach ($items as $item) {
+                $product = $this->productModel->find($item['product_id']);
+                $itemRate = ($product && $product['tax_rate'] !== null) ? (float)$product['tax_rate'] : $globalTaxRate;
+                $itemTotal = (float)$item['price'] * (int)$item['quantity'];
+                $taxAmount += Setting::calculateTax($itemTotal, $itemRate, $taxIncluded);
+            }
+        }
+
+        // Calculate final total
+        $subtotal = $totals['subtotal'] ?? 0;
+        $totalWithTax = $taxIncluded ? $subtotal : $subtotal + $taxAmount;
+
         $this->view('cart/index', [
             'title' => 'Shopping Cart - ADI ARI Fresh',
             'items' => $items,
             'totals' => $totals,
-            'validation' => $validation
+            'validation' => $validation,
+            'taxEnabled' => $taxEnabled,
+            'taxIncluded' => $taxIncluded,
+            'taxRate' => $globalTaxRate,
+            'taxLabel' => $taxLabel,
+            'taxAmount' => $taxAmount,
+            'totalWithTax' => $totalWithTax,
         ]);
     }
 

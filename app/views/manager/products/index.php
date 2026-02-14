@@ -44,10 +44,16 @@ $search = $data['search'];
         <div class="flex-1 overflow-auto flex flex-col">
             <header class="bg-white shadow-sm p-6 flex justify-between items-center z-10">
                 <h1 class="text-2xl font-bold text-gray-900">Product Management</h1>
-                <a href="/manager/product/create" class="flex items-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition shadow-lg transform hover:scale-105">
-                    <span class="material-symbols-outlined mr-2">add_circle</span>
-                    New Product
-                </a>
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="document.getElementById('importModal').classList.remove('hidden'); document.getElementById('importModal').classList.add('flex');" class="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-lg transform hover:scale-105">
+                        <span class="material-symbols-outlined mr-2">upload_file</span>
+                        Import Excel
+                    </button>
+                    <a href="/manager/product/create" class="flex items-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition shadow-lg transform hover:scale-105">
+                        <span class="material-symbols-outlined mr-2">add_circle</span>
+                        New Product
+                    </a>
+                </div>
             </header>
 
             <main class="flex-1 p-8">
@@ -178,3 +184,263 @@ $search = $data['search'];
         </div>
     </div>
 </div>
+
+<!-- Import Excel Modal -->
+<div id="importModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+        <!-- Modal Header -->
+        <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-2xl">
+            <div>
+                <h3 class="text-xl font-bold">Import Products from Excel</h3>
+                <p class="text-blue-100 text-sm mt-1">Upload .xlsx, .xls, or .csv files</p>
+            </div>
+            <button onclick="closeImportModal()" class="text-white/80 hover:text-white transition">
+                <span class="material-symbols-outlined text-3xl">close</span>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6 overflow-y-auto flex-1">
+            <!-- Step 1: Upload -->
+            <div id="importStep1">
+                <div class="mb-6">
+                    <h4 class="font-bold text-gray-900 mb-2">📋 Required Columns</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">Name *</span>
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">Price *</span>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">SKU</span>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">Category</span>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">Stock</span>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">Description</span>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">Sale Price</span>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">Unit</span>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">Halal (yes/no)</span>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">Organic (yes/no)</span>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">Featured (yes/no)</span>
+                    </div>
+                </div>
+
+                <!-- Download Template -->
+                <div class="mb-6">
+                    <button onclick="downloadTemplate()" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-sm transition">
+                        <span class="material-symbols-outlined mr-1 text-lg">download</span>
+                        Download Excel Template
+                    </button>
+                </div>
+
+                <!-- Drop Zone -->
+                <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center hover:border-blue-500 transition-all cursor-pointer bg-gray-50 hover:bg-blue-50/30"
+                     onclick="document.getElementById('excelFile').click()"
+                     ondragover="event.preventDefault(); this.classList.add('border-blue-500','bg-blue-50')"
+                     ondragleave="this.classList.remove('border-blue-500','bg-blue-50')"
+                     ondrop="event.preventDefault(); this.classList.remove('border-blue-500','bg-blue-50'); handleFileDrop(event)">
+                    <span class="material-symbols-outlined text-5xl text-gray-400 mb-3">cloud_upload</span>
+                    <p class="text-lg font-bold text-gray-700 mb-1">Drag & drop your Excel file here</p>
+                    <p class="text-sm text-gray-500 mb-4">or click to browse</p>
+                    <span class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition">
+                        <span class="material-symbols-outlined mr-2 text-lg">folder_open</span>
+                        Choose File
+                    </span>
+                    <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleFileSelect(this)">
+                </div>
+
+                <div id="fileName" class="mt-3 text-sm text-gray-600 hidden">
+                    <span class="material-symbols-outlined text-green-500 align-middle mr-1">check_circle</span>
+                    <span id="fileNameText"></span>
+                </div>
+            </div>
+
+            <!-- Step 2: Preview -->
+            <div id="importStep2" class="hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h4 class="font-bold text-gray-900">📊 Data Preview</h4>
+                        <p class="text-sm text-gray-500" id="rowCount"></p>
+                    </div>
+                    <button onclick="resetImport()" class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium">
+                        <span class="material-symbols-outlined text-lg">refresh</span>
+                        Choose Different File
+                    </button>
+                </div>
+
+                <div class="border rounded-xl overflow-hidden">
+                    <div class="overflow-x-auto max-h-[350px] overflow-y-auto">
+                        <table class="min-w-full divide-y divide-gray-200" id="previewTable">
+                            <thead class="bg-gray-50 sticky top-0 z-10" id="previewHead"></thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="previewBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-6 border-t border-gray-200 bg-gray-50 flex justify-between items-center rounded-b-2xl">
+            <button onclick="closeImportModal()" class="px-6 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition">
+                Cancel
+            </button>
+            <form id="importForm" method="POST" action="/manager/products/import">
+                <?= Security::getCsrfField() ?>
+                <input type="hidden" name="import_data" id="importDataField" value="">
+                <button type="submit" id="importSubmitBtn" disabled class="px-8 py-2.5 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">publish</span>
+                    <span id="importBtnText">Import Products</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- SheetJS Library for Excel parsing -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+<script>
+let parsedData = [];
+
+function handleFileDrop(event) {
+    const files = event.dataTransfer.files;
+    if (files.length > 0) processFile(files[0]);
+}
+
+function handleFileSelect(input) {
+    if (input.files.length > 0) processFile(input.files[0]);
+}
+
+function processFile(file) {
+    const validTypes = [
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+        'application/vnd.ms-excel', // .xls
+        'text/csv',
+        'application/csv'
+    ];
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['xlsx', 'xls', 'csv'].includes(ext)) {
+        alert('Please upload an Excel (.xlsx, .xls) or CSV file.');
+        return;
+    }
+
+    // Show file name
+    document.getElementById('fileName').classList.remove('hidden');
+    document.getElementById('fileNameText').textContent = file.name + ' (' + formatFileSize(file.size) + ')';
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheet];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+            if (jsonData.length === 0) {
+                alert('No data found in the file. Make sure the first row contains column headers.');
+                return;
+            }
+
+            parsedData = jsonData;
+            showPreview(jsonData);
+        } catch (err) {
+            alert('Error reading file: ' + err.message);
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function showPreview(data) {
+    document.getElementById('importStep1').classList.add('hidden');
+    document.getElementById('importStep2').classList.remove('hidden');
+    document.getElementById('rowCount').textContent = data.length + ' product(s) found';
+
+    // Build preview table
+    const headers = Object.keys(data[0]);
+    const thead = document.getElementById('previewHead');
+    const tbody = document.getElementById('previewBody');
+
+    thead.innerHTML = '<tr>' + headers.map(h =>
+        `<th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">${escapeHtml(h)}</th>`
+    ).join('') + '</tr>';
+
+    // Show max 50 rows for preview
+    const previewRows = data.slice(0, 50);
+    tbody.innerHTML = previewRows.map((row, idx) =>
+        '<tr class="' + (idx % 2 === 0 ? 'bg-white' : 'bg-gray-50') + '">' +
+        headers.map(h =>
+            `<td class="px-4 py-2 text-sm text-gray-700 whitespace-nowrap max-w-[200px] truncate">${escapeHtml(String(row[h] ?? ''))}</td>`
+        ).join('') +
+        '</tr>'
+    ).join('');
+
+    if (data.length > 50) {
+        tbody.innerHTML += `<tr><td colspan="${headers.length}" class="px-4 py-3 text-center text-sm text-gray-500 italic bg-yellow-50">... and ${data.length - 50} more rows (not shown in preview)</td></tr>`;
+    }
+
+    // Enable submit button
+    document.getElementById('importDataField').value = JSON.stringify(parsedData);
+    document.getElementById('importSubmitBtn').disabled = false;
+    document.getElementById('importBtnText').textContent = `Import ${data.length} Product(s)`;
+}
+
+function resetImport() {
+    parsedData = [];
+    document.getElementById('importStep1').classList.remove('hidden');
+    document.getElementById('importStep2').classList.add('hidden');
+    document.getElementById('fileName').classList.add('hidden');
+    document.getElementById('excelFile').value = '';
+    document.getElementById('importDataField').value = '';
+    document.getElementById('importSubmitBtn').disabled = true;
+    document.getElementById('importBtnText').textContent = 'Import Products';
+}
+
+function closeImportModal() {
+    document.getElementById('importModal').classList.remove('flex');
+    document.getElementById('importModal').classList.add('hidden');
+    resetImport();
+}
+
+function downloadTemplate() {
+    const templateData = [
+        { 'Name': 'Sample Product', 'SKU': 'SKU-001', 'Category': 'Vegetables', 'Price': 100, 'Stock': 50, 'Description': 'Fresh organic vegetable', 'Sale Price': '', 'Unit': 'kg', 'Halal': 'yes', 'Organic': 'yes', 'Featured': 'no' }
+    ];
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Products');
+
+    // Set column widths
+    ws['!cols'] = [
+        { wch: 25 }, { wch: 12 }, { wch: 15 }, { wch: 10 },
+        { wch: 10 }, { wch: 35 }, { wch: 12 }, { wch: 8 },
+        { wch: 8 }, { wch: 10 }, { wch: 10 }
+    ];
+
+    XLSX.writeFile(wb, 'product_import_template.xlsx');
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(text));
+    return div.innerHTML;
+}
+
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+// Close modal on escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeImportModal();
+});
+
+// Close modal on backdrop click
+document.getElementById('importModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeImportModal();
+});
+
+// Show loading on submit
+document.getElementById('importForm')?.addEventListener('submit', function() {
+    const btn = document.getElementById('importSubmitBtn');
+    btn.disabled = true;
+    document.getElementById('importBtnText').textContent = 'Importing...';
+});
+</script>

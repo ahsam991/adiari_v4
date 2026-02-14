@@ -311,6 +311,156 @@ class ManagerController extends Controller {
     }
 
     /**
+     * Import Products from Excel/CSV
+     * Receives JSON data parsed client-side by SheetJS
+     */
+    public function importProducts() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/manager/products');
+        }
+
+        if (!Security::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+            Session::setFlash('error', 'Invalid request.');
+            $this->redirect('/manager/products');
+        }
+
+        $jsonData = $_POST['import_data'] ?? '';
+        $rows = json_decode($jsonData, true);
+
+        if (!$rows || !is_array($rows) || empty($rows)) {
+            Session::setFlash('error', 'No valid data found in the uploaded file.');
+            $this->redirect('/manager/products');
+        }
+
+        // Get all categories for name→ID mapping
+        $categories = $this->categoryModel->getActiveCategories();
+        $categoryMap = [];
+        foreach ($categories as $cat) {
+            $categoryMap[strtolower(trim($cat['name']))] = $cat['id'];
+            $categoryMap[strtolower(trim($cat['slug'] ?? ''))] = $cat['id'];
+        }
+
+        $successCount = 0;
+        $errorCount = 0;
+        $errors = [];
+
+        foreach ($rows as $index => $row) {
+            $rowNum = $index + 2; // +2 because row 1 is header, and index is 0-based
+
+            // Normalize keys to lowercase
+            $normalized = [];
+            foreach ($row as $key => $value) {
+                $normalized[strtolower(trim($key))] = trim((string)$value);
+            }
+
+            // Get product name (required)
+            $name = $normalized['name'] ?? $normalized['product name'] ?? $normalized['product_name'] ?? '';
+            if (empty($name)) {
+                $errorCount++;
+                $errors[] = "Row {$rowNum}: Missing product name.";
+                continue;
+            }
+
+            // Get category - try ID first, then name match
+            $categoryId = null;
+            $catValue = $normalized['category_id'] ?? $normalized['category'] ?? $normalized['cat'] ?? '';
+            if (is_numeric($catValue)) {
+                $categoryId = (int)$catValue;
+            } elseif (!empty($catValue)) {
+                $categoryId = $categoryMap[strtolower($catValue)] ?? null;
+            }
+            if (!$categoryId) {
+                // Default to first category if none found
+                $categoryId = !empty($categories) ? $categories[0]['id'] : 1;
+            }
+
+            // Get price
+            $price = $normalized['price'] ?? $normalized['unit price'] ?? $normalized['unit_price'] ?? '0';
+            $price = (float)preg_replace('/[^0-9.]/', '', $price);
+
+            // Get stock
+            $stock = $normalized['stock'] ?? $normalized['stock_quantity'] ?? $normalized['quantity'] ?? $normalized['qty'] ?? '0';
+            $stock = (int)preg_replace('/[^0-9]/', '', $stock);
+
+            // Get SKU - auto-generate if missing
+            $sku = $normalized['sku'] ?? $normalized['barcode'] ?? '';
+            if (empty($sku)) {
+                $sku = 'IMP-' . strtoupper(substr(md5($name . time() . $index), 0, 8));
+            }
+
+            // Check if SKU already exists
+            $existingSku = Database::fetchOne("SELECT id FROM products WHERE sku = ?", [$sku], 'grocery');
+            if ($existingSku) {
+                $sku = $sku . '-' . rand(100, 999);
+            }
+
+            // Get description
+            $description = $normalized['description'] ?? $normalized['desc'] ?? '';
+
+            // Get sale price
+            $salePrice = $normalized['sale_price'] ?? $normalized['sale price'] ?? $normalized['discount_price'] ?? '';
+            $salePrice = !empty($salePrice) ? (float)preg_replace('/[^0-9.]/', '', $salePrice) : null;
+
+            // Get unit
+            $unit = $normalized['unit'] ?? $normalized['uom'] ?? '';
+
+            // Boolean flags
+            $isFeatured = in_array(strtolower($normalized['is_featured'] ?? $normalized['featured'] ?? ''), ['1', 'yes', 'true']) ? 1 : 0;
+            $isOrganic = in_array(strtolower($normalized['is_organic'] ?? $normalized['organic'] ?? ''), ['1', 'yes', 'true']) ? 1 : 0;
+            $isHalal = in_array(strtolower($normalized['is_halal'] ?? $normalized['halal'] ?? ''), ['1', 'yes', 'true']) ? 1 : 0;
+
+            // Build product data
+            $productData = [
+                'name' => $name,
+                'slug' => strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name))),
+                'sku' => $sku,
+                'category_id' => $categoryId,
+                'price' => $price,
+                'stock_quantity' => $stock,
+                'description' => $description,
+                'is_featured' => $isFeatured,
+                'is_organic' => $isOrganic,
+                'is_halal' => $isHalal,
+                'status' => 'active'
+            ];
+
+            if ($salePrice !== null && $salePrice > 0) {
+                $productData['sale_price'] = $salePrice;
+            }
+            if (!empty($unit)) {
+                $productData['unit'] = $unit;
+            }
+
+            try {
+                if ($this->productModel->create($productData)) {
+                    $successCount++;
+                } else {
+                    $errorCount++;
+                    $errors[] = "Row {$rowNum}: Failed to insert '{$name}'.";
+                }
+            } catch (Exception $e) {
+                $errorCount++;
+                $errors[] = "Row {$rowNum}: Error - " . $e->getMessage();
+            }
+        }
+
+        if ($successCount > 0) {
+            $msg = "{$successCount} product(s) imported successfully!";
+            if ($errorCount > 0) {
+                $msg .= " ({$errorCount} failed)";
+            }
+            Session::setFlash('success', $msg);
+        }
+        if ($errorCount > 0 && $successCount === 0) {
+            Session::setFlash('error', "Import failed. " . implode(' | ', array_slice($errors, 0, 5)));
+        } elseif (!empty($errors)) {
+            Session::setFlash('error', implode(' | ', array_slice($errors, 0, 5)));
+        }
+
+        $this->redirect('/manager/products');
+    }
+
+    /**
      * Category list
      */
     public function categories() {

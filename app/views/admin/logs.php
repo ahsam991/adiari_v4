@@ -5,6 +5,7 @@ $nav = function (string $path) use ($currentPath) {
         ? 'flex items-center px-4 py-3 bg-gray-800 text-white rounded-lg'
         : 'flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition';
 };
+$userMap = $userMap ?? [];
 ?>
 <div class="bg-gray-100 min-h-screen">
     <div class="flex h-screen overflow-hidden">
@@ -109,7 +110,22 @@ $nav = function (string $path) use ($currentPath) {
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#<?= htmlspecialchars($log['id']) ?></td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                                 <?php if ($log['user_id']): ?>
-                                                    <span class="font-medium text-gray-900">User #<?= htmlspecialchars($log['user_id']) ?></span>
+                                                    <?php $user = $userMap[$log['user_id']] ?? null; ?>
+                                                    <?php if ($user): ?>
+                                                        <div>
+                                                            <span class="font-semibold text-gray-900"><?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></span>
+                                                            <span class="text-xs text-gray-400 ml-1">#<?= $log['user_id'] ?></span>
+                                                        </div>
+                                                        <a href="mailto:<?= htmlspecialchars($user['email']) ?>" class="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1 mt-0.5" title="Send email">
+                                                            <span class="material-symbols-outlined" style="font-size:14px">mail</span>
+                                                            <?= htmlspecialchars($user['email']) ?>
+                                                        </a>
+                                                        <?php if (!empty($user['phone'])): ?>
+                                                            <span class="text-xs text-gray-400"><?= htmlspecialchars($user['phone']) ?></span>
+                                                        <?php endif; ?>
+                                                    <?php else: ?>
+                                                        <span class="font-medium text-gray-900">User #<?= htmlspecialchars($log['user_id']) ?></span>
+                                                    <?php endif; ?>
                                                 <?php else: ?>
                                                     <span class="text-gray-400">Guest</span>
                                                 <?php endif; ?>
