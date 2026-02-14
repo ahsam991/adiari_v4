@@ -21,12 +21,15 @@ if (file_exists($envFile)) {
             list($key, $value) = explode('=', $line, 2);
             $key = trim($key);
             $value = trim($value);
-            // Remove surrounding quotes
-            if ((strpos($value, '"') === 0 && strrpos($value, '"') === strlen($value) - 1) ||
-                (strpos($value, "'") === 0 && strrpos($value, "'") === strlen($value) - 1)) {
+            // Remove surrounding quotes (must be at least 2 chars with matching quotes)
+            $len = strlen($value);
+            if ($len >= 2 &&
+                (($value[0] === '"' && $value[$len - 1] === '"') ||
+                 ($value[0] === "'" && $value[$len - 1] === "'"))) {
                 $value = substr($value, 1, -1);
             }
-            if (!empty($key)) {
+            // Only set valid environment variable names
+            if (!empty($key) && preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $key)) {
                 putenv("$key=$value");
                 $_ENV[$key] = $value;
             }

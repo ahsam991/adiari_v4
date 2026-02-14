@@ -11,7 +11,7 @@ return [
     'url' => getenv('APP_URL') ?: 'http://localhost',
 
     // Debug mode (set to false in production)
-    'debug' => filter_var(getenv('APP_DEBUG') ?: true, FILTER_VALIDATE_BOOLEAN),
+    'debug' => filter_var(getenv('APP_DEBUG') ?: false, FILTER_VALIDATE_BOOLEAN),
 
     // Timezone
     'timezone' => getenv('APP_TIMEZONE') ?: 'Asia/Tokyo',
