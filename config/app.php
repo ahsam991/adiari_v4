@@ -5,16 +5,16 @@
 
 return [
     // Application name
-    'name' => 'ADI ARI FRESH VEGETABLES AND HALAL FOOD',
+    'name' => getenv('APP_NAME') ?: 'ADI ARI FRESH VEGETABLES AND HALAL FOOD',
 
     // Application URL    
-    'url' => 'http://localhost',
+    'url' => getenv('APP_URL') ?: 'http://localhost',
 
     // Debug mode (set to false in production)
-    'debug' => true,
+    'debug' => filter_var(getenv('APP_DEBUG') ?: true, FILTER_VALIDATE_BOOLEAN),
 
     // Timezone
-    'timezone' => 'Asia/Tokyo',
+    'timezone' => getenv('APP_TIMEZONE') ?: 'Asia/Tokyo',
 
     // Default language
     'language' => 'en',
