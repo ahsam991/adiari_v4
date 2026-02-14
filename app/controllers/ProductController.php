@@ -26,8 +26,9 @@ class ProductController extends Controller {
     public function index() {
         // Get query parameters
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $search = isset($_GET['q']) ? trim($_GET['q']) : '';
+        $search = isset($_GET['search']) ? trim($_GET['search']) : (isset($_GET['q']) ? trim($_GET['q']) : '');
         $sort = isset($_GET['sort']) ? $_GET['sort'] : 'newest';
+        $categoryParam = isset($_GET['category']) ? $_GET['category'] : null;
         
         // Validate and sanitize pagination
         $page = max(1, $page); // Ensure page is at least 1
@@ -35,11 +36,26 @@ class ProductController extends Controller {
         $limit = 12; // Products per page
         $offset = ($page - 1) * $limit;
 
+        // Try to resolve category (by ID or slug)
+        $currentCategory = null;
+        if ($categoryParam) {
+            if (is_numeric($categoryParam)) {
+                $currentCategory = $this->categoryModel->find((int)$categoryParam);
+            } else {
+                $currentCategory = $this->categoryModel->findBySlug($categoryParam);
+            }
+        }
+
         if ($search) {
             // Search products
             $products = $this->productModel->searchProducts($search, $limit, $offset);
             $totalProducts = $this->productModel->countSearchProducts($search);
             $title = "Search results for \"" . htmlspecialchars($search, ENT_QUOTES, 'UTF-8') . "\" - ADI ARI Fresh";
+        } elseif ($currentCategory) {
+            // Filter by category
+            $products = $this->productModel->getProductsByCategory($currentCategory['id'], $limit, $offset, $sort);
+            $totalProducts = $this->productModel->countProductsByCategory($currentCategory['id']);
+            $title = htmlspecialchars($currentCategory['name']) . ' - ADI ARI Fresh';
         } else {
             // Get all active products
             $products = $this->productModel->getActiveProducts($limit, $offset, $sort);
@@ -57,6 +73,7 @@ class ProductController extends Controller {
             'title' => $title,
             'products' => $products,
             'categories' => $categories,
+            'currentCategory' => $currentCategory,
             'currentPage' => $page,
             'totalPages' => $totalPages,
             'search' => $search,

@@ -97,13 +97,9 @@ $remaining = max(0, $freeShippingThreshold - $subtotal);
                                             </a>
                                             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1"><?= htmlspecialchars($item['category_name'] ?? 'Groceries') ?></p>
                                         </div>
-                                        <form method="post" action="<?= $this->url('/cart/remove') ?>" onsubmit="return confirm('Remove this item?');">
-                                            <?= $this->csrfField() ?>
-                                            <input type="hidden" name="product_id" value="<?= (int)$item['product_id'] ?>">
-                                            <button type="submit" class="text-gray-400 hover:text-red-500 transition-colors bg-transparent border-none p-0 cursor-pointer">
-                                                <span class="material-symbols-outlined">delete</span>
-                                            </button>
-                                        </form>
+                                        <button type="button" onclick="showDeleteConfirm(<?= (int)$item['product_id'] ?>, '<?= htmlspecialchars(addslashes($item['name'])) ?>')" class="text-gray-400 hover:text-red-500 transition-colors bg-transparent border-none p-0 cursor-pointer">
+                                            <span class="material-symbols-outlined">delete</span>
+                                        </button>
                                     </div>
                                     
                                     <div class="flex justify-between items-center mt-4">
@@ -202,3 +198,119 @@ $remaining = max(0, $freeShippingThreshold - $subtotal);
         <?php endif; ?>
     </div>
 </div>
+
+<!-- Custom Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div class="bg-white dark:bg-[#1a2e1b] rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all scale-95 opacity-0" id="deleteModalContent">
+        <div class="p-6">
+            <div class="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/20 rounded-full">
+                <span class="material-symbols-outlined text-3xl text-red-600 dark:text-red-400">warning</span>
+            </div>
+            <h3 class="text-xl font-bold text-center text-gray-900 dark:text-white mb-2">Remove Item?</h3>
+            <p class="text-center text-gray-600 dark:text-gray-400 mb-1">Are you sure you want to remove</p>
+            <p class="text-center font-bold text-gray-900 dark:text-white mb-6" id="deleteItemName"></p>
+            
+            <div class="flex gap-3">
+                <button type="button" onclick="closeDeleteModal()" class="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold rounded-lg transition-colors">
+                    Cancel
+                </button>
+                <button type="button" id="confirmDeleteBtn" disabled class="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span id="confirmBtnText">Wait (<span id="countdown">2</span>s)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for actual deletion -->
+<form id="deleteForm" method="post" action="<?= $this->url('/cart/remove') ?>" style="display: none;">
+    <?= $this->csrfField() ?>
+    <input type="hidden" name="product_id" id="deleteProductId" value="">
+</form>
+
+<script>
+let deleteTimer = null;
+let deleteProductIdToRemove = null;
+
+function showDeleteConfirm(productId, productName) {
+    deleteProductIdToRemove = productId;
+    document.getElementById('deleteItemName').textContent = productName;
+    document.getElementById('deleteProductId').value = productId;
+    
+    const modal = document.getElementById('deleteModal');
+    const modalContent = document.getElementById('deleteModalContent');
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    const countdownEl = document.getElementById('countdown');
+    const confirmText = document.getElementById('confirmBtnText');
+    
+    // Show modal with animation
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modalContent.classList.remove('scale-95', 'opacity-0');
+        modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+    
+    // Reset button state
+    confirmBtn.disabled = true;
+    let timeLeft = 2;
+    countdownEl.textContent = timeLeft;
+    confirmText.innerHTML = 'Wait (<span id="countdown">' + timeLeft + '</span>s)';
+    
+    // Start countdown
+    deleteTimer = setInterval(() => {
+        timeLeft--;
+        if (timeLeft > 0) {
+            countdownEl.textContent = timeLeft;
+        } else {
+            clearInterval(deleteTimer);
+            confirmBtn.disabled = false;
+            confirmText.textContent = 'Remove Item';
+            confirmBtn.classList.add('animate-pulse');
+        }
+    }, 1000);
+    
+    // Add click handler to confirm button
+    confirmBtn.onclick = function() {
+        if (!this.disabled) {
+            document.getElementById('deleteForm').submit();
+        }
+    };
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    const modalContent = document.getElementById('deleteModalContent');
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    
+    // Clear timer
+    if (deleteTimer) {
+        clearInterval(deleteTimer);
+        deleteTimer = null;
+    }
+    
+    // Hide with animation
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    modalContent.classList.add('scale-95', 'opacity-0');
+    confirmBtn.classList.remove('animate-pulse');
+    
+    setTimeout(() => {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }, 200);
+}
+
+// Close modal when clicking outside
+document.getElementById('deleteModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDeleteModal();
+    }
+});
+</script>

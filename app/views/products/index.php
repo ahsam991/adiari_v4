@@ -61,7 +61,7 @@ function buildUrl($params) {
             </a>
         </div>
     <?php else: ?>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 px-4 sm:px-5 pb-5">
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 px-4 sm:px-5 pb-5">
             <?php foreach ($products as $product): ?>
                 <div class="group flex flex-col gap-3">
                     <div class="relative w-full aspect-[4/5] bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden">

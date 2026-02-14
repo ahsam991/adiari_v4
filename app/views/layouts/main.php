@@ -119,8 +119,9 @@
             <div class="flex items-center justify-between gap-8">
                 <!-- Logo -->
                 <a class="flex items-center shrink-0 group" href="<?= $this->url('/') ?>">
-                    <img src="<?= $this->url('/images/logo.svg') ?>" alt="ADI ARI - Fresh Vegetables and Halal Food" class="h-12 w-auto sm:h-14 object-contain transition-transform duration-300 group-hover:scale-105">
+                    <img src="<?= $this->url('/images/logo.svg') ?>" alt="ADI ARI - Fresh Vegetables and Halal Food" class="h-10 w-auto sm:h-12 md:h-14 object-contain transition-transform duration-300 group-hover:scale-105" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 60%22%3E%3Ctext x=%2210%22 y=%2240%22 font-family=%22Arial%22 font-size=%2224%22 font-weight=%22bold%22 fill=%22%2322c55e%22%3EADI ARI%3C/text%3E%3C/svg%3E';">
                 </a>
+
                 
                 <!-- Search Bar (Desktop Only) -->
                 <div class="hidden lg:flex flex-1 max-w-2xl relative">

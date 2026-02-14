@@ -60,6 +60,7 @@ $router->post('/account/change-password', 'UserController@changePasswordPost');
 $router->get('/account/addresses', 'UserController@addresses');
 $router->post('/account/address/add', 'UserController@addAddress');
 $router->get('/account/wishlist', 'UserController@wishlist');
+$router->get('/wishlist', 'UserController@wishlist');
 
 // ============================================
 // MANAGER ROUTES (Manager/Admin Only)
