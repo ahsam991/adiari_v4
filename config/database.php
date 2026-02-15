@@ -7,7 +7,7 @@
 return [
     // Main database - Grocery ecommerce data
     'grocery' => [
-        'host' => 'localhost',
+        'host' => '127.0.0.1',
         'port' => 3306,
         'database' => 'adiari_grocery',
         'username' => 'root',
@@ -19,7 +19,7 @@ return [
 
     // Inventory database - Stock tracking
     'inventory' => [
-        'host' => 'localhost',
+        'host' => '127.0.0.1',
         'port' => 3306,
         'database' => 'adiari_inventory',
         'username' => 'root',
@@ -31,7 +31,7 @@ return [
 
     // Analytics database - Reporting and metrics
     'analytics' => [
-        'host' => 'localhost',
+        'host' => '127.0.0.1',
         'port' => 3306,
         'database' => 'adiari_analytics',
         'username' => 'root',

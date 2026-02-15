@@ -61,6 +61,7 @@ $errors = Session::getFlash('errors') ?? [];
 
                 <div class="bg-white rounded-xl shadow-sm overflow-hidden">
                     <form action="/manager/product/<?= $product['id'] ?>/update" method="POST" enctype="multipart/form-data" class="p-8">
+                        <?= Security::getCsrfField() ?>
                         <!-- Basic Info -->
                         <h3 class="text-lg font-bold text-gray-900 mb-6 border-b pb-2">Basic Information</h3>
                         

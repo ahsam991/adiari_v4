@@ -304,26 +304,29 @@
     ?>
     <nav id="mobile-menu" class="bg-white dark:bg-[#162917] border-b border-border-light dark:border-border-dark hidden md:block shadow-sm">
         <div class="max-w-[1280px] mx-auto px-4 sm:px-10">
-            <ul class="flex items-center gap-8">
-                <li class="group">
-                    <a class="flex items-center gap-2 py-4 border-b-[3px] <?= getCategoryClasses('vegetables', $currentCategory) ?> text-sm tracking-wide" href="<?= $this->url('/products?category=vegetables') ?>">
-                        <span class="material-symbols-outlined text-[20px] <?= getIconClasses('vegetables', $currentCategory) ?>">nutrition</span>
-                        <span><?= Language::get('vegetables') ?></span>
+            <ul class="flex items-center gap-8 overflow-x-auto">
+                <?php
+                // Fetch dynamic categories
+                require_once __DIR__ . '/../../models/Category.php';
+                $navCategoryModel = new Category();
+                $navCategories = $navCategoryModel->getActiveCategories();
+                
+                foreach ($navCategories as $navCat):
+                    $isMeat = strtolower($navCat['name']) === 'meat' || strtolower($navCat['slug']) === 'meat';
+                ?>
+                <li class="group <?= $isMeat ? 'relative' : '' ?>">
+                    <a class="flex items-center gap-2 py-4 border-b-[3px] <?= getCategoryClasses($navCat['slug'], $currentCategory) ?> text-sm tracking-wide whitespace-nowrap" href="<?= $this->url('/products?category=' . $navCat['slug']) ?>">
+                        <?php if (!empty($navCat['icon'])): ?>
+                            <span class="material-symbols-outlined text-[20px] <?= getIconClasses($navCat['slug'], $currentCategory) ?>"><?= $navCat['icon'] ?></span>
+                        <?php endif; ?>
+                        <span><?= htmlspecialchars($navCat['name']) ?></span>
+                        <?php if ($isMeat): ?>
+                            <span class="material-symbols-outlined text-[16px] ml-1">expand_more</span>
+                        <?php endif; ?>
                     </a>
-                </li>
-                <li class="group">
-                    <a class="flex items-center gap-2 py-4 border-b-[3px] <?= getCategoryClasses('fruits', $currentCategory) ?> text-sm tracking-wide" href="<?= $this->url('/products?category=fruits') ?>">
-                        <span class="material-symbols-outlined text-[20px] <?= getIconClasses('fruits', $currentCategory) ?>">ios</span>
-                        <span><?= Language::get('fruits') ?></span>
-                    </a>
-                </li>
-                <li class="group relative">
-                    <a class="flex items-center gap-2 py-4 border-b-[3px] <?= getCategoryClasses('meat', $currentCategory) ?> text-sm tracking-wide" href="<?= $this->url('/products?category=meat') ?>">
-                        <span class="material-symbols-outlined text-[20px] <?= getIconClasses('meat', $currentCategory) ?>">kebab_dining</span>
-                        <span><?= Language::get('halal_meat') ?></span>
-                        <span class="material-symbols-outlined text-[16px] ml-1">expand_more</span>
-                    </a>
-                    <!-- Mega Menu Dropdown -->
+                    
+                    <?php if ($isMeat): ?>
+                    <!-- Mega Menu Dropdown for Meat (Static for now, can be made dynamic later) -->
                     <div class="absolute left-0 top-full w-[600px] bg-white dark:bg-surface-dark shadow-xl rounded-b-xl border border-border-light dark:border-border-dark opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-40 transform translate-y-2 group-hover:translate-y-0">
                         <div class="flex p-6 gap-8">
                             <div class="flex-1 space-y-4">
@@ -352,21 +355,11 @@
                             </div>
                         </div>
                     </div>
+                    <?php endif; ?>
                 </li>
-                <li class="group">
-                    <a class="flex items-center gap-2 py-4 border-b-[3px] <?= getCategoryClasses('dairy', $currentCategory) ?> text-sm tracking-wide" href="<?= $this->url('/products?category=dairy') ?>">
-                        <span class="material-symbols-outlined text-[20px] <?= getIconClasses('dairy', $currentCategory) ?>">egg_alt</span>
-                        <span><?= Language::get('dairy_eggs') ?></span>
-                    </a>
-                </li>
-                <li class="group">
-                    <a class="flex items-center gap-2 py-4 border-b-[3px] <?= getCategoryClasses('bakery', $currentCategory) ?> text-sm tracking-wide" href="<?= $this->url('/products?category=bakery') ?>">
-                        <span class="material-symbols-outlined text-[20px] <?= getIconClasses('bakery', $currentCategory) ?>">bakery_dining</span>
-                        <span><?= Language::get('bakery') ?></span>
-                    </a>
-                </li>
-                <div class="flex-1"></div>
-                <li class="group">
+                <?php endforeach; ?>
+                
+                <li class="group ml-auto">
                     <a class="flex items-center gap-2 py-2 px-4 rounded-lg <?= $isDealsPage ? 'bg-red-100 dark:bg-red-900/30' : 'bg-red-50 dark:bg-red-900/20' ?> text-red-600 dark:text-red-400 font-bold text-sm tracking-wide hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors" href="<?= $this->url('/deals') ?>">
                         <span class="material-symbols-outlined text-[20px] animate-pulse">local_offer</span>
                         <span><?= Language::get('weekly_deals') ?></span>

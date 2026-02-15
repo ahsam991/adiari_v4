@@ -11,14 +11,14 @@ require_once __DIR__ . '/config/database.php';
 // Test function
 function testDatabaseConnection($config, $dbName) {
     try {
-        $dsn = "mysql:host={$config['host']};dbname={$config['dbname']};charset={$config['charset']}";
+        $dsn = "mysql:host={$config['host']};dbname={$config['database']};charset={$config['charset']}";
         $pdo = new PDO($dsn, $config['username'], $config['password'], [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
         ]);
         
         // Test query
-        $stmt = $pdo->query("SELECT COUNT(*) as count FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{$config['dbname']}'");
+        $stmt = $pdo->query("SELECT COUNT(*) as count FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{$config['database']}'");
         $result = $stmt->fetch();
         
         return [
@@ -176,19 +176,19 @@ $dbConfig = require __DIR__ . '/config/database.php';
             <tr>
                 <td>Grocery (Main)</td>
                 <td><?php echo htmlspecialchars($dbConfig['grocery']['host']); ?></td>
-                <td><?php echo htmlspecialchars($dbConfig['grocery']['dbname']); ?></td>
+                <td><?php echo htmlspecialchars($dbConfig['grocery']['database']); ?></td>
                 <td><?php echo $groceryTest['success'] ? '✅ Connected' : '❌ Failed'; ?></td>
             </tr>
             <tr>
                 <td>Inventory</td>
                 <td><?php echo htmlspecialchars($dbConfig['inventory']['host']); ?></td>
-                <td><?php echo htmlspecialchars($dbConfig['inventory']['dbname']); ?></td>
+                <td><?php echo htmlspecialchars($dbConfig['inventory']['database']); ?></td>
                 <td><?php echo $inventoryTest['success'] ? '✅ Connected' : '❌ Failed'; ?></td>
             </tr>
             <tr>
                 <td>Analytics</td>
                 <td><?php echo htmlspecialchars($dbConfig['analytics']['host']); ?></td>
-                <td><?php echo htmlspecialchars($dbConfig['analytics']['dbname']); ?></td>
+                <td><?php echo htmlspecialchars($dbConfig['analytics']['database']); ?></td>
                 <td><?php echo $analyticsTest['success'] ? '✅ Connected' : '❌ Failed'; ?></td>
             </tr>
         </table>
